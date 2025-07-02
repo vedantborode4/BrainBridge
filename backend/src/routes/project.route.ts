@@ -3,6 +3,8 @@ import z from "zod"
 import { User } from "../models/user.model"
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
+import { userAuthMiddelware } from "../middlewares/user.auth.middleware"
+import { Content } from "../models/content.model"
 
 const projectRoutes = Router()
 
@@ -26,6 +28,17 @@ const signinZodvalidationSchema = z.object({
                 .max(20)
                 .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%&*-])[A-Za-z\d!@#$%&*-]{8,}$/),
 
+})
+
+const contentZodvalidationSchema = z.object({
+    title: z.string(),
+    link: z.string(),
+    tags: z.array(z.string()),
+    type: z.enum(["image", "article", "video", "audio", "tweet"])
+})
+
+const deleteZodvalidationSchema = z.object({
+    contentId: z.string()
 })
 
 projectRoutes.post("/signup", async (req , res) => {
@@ -126,7 +139,7 @@ projectRoutes.post("/signin", async (req, res) => {
         }
 
         const token = jwt.sign({
-            username: parsedData.data.username
+            id: user._id
         },
         jwtSecret,   
         {
@@ -149,16 +162,88 @@ projectRoutes.post("/signin", async (req, res) => {
     }
 })
 
-projectRoutes.post("/content", (req, res) => {
+projectRoutes.post("/content", userAuthMiddelware, async (req, res) => {
 
+    const parsedData = contentZodvalidationSchema.safeParse(req.body)
+    //@ts-ignore
+    const userId = req.userId
+
+    try {
+        if(!parsedData.success){
+            res
+            .status(411)
+            .json({
+                message: "Error in inputs"
+            })
+            return
+        }
+
+        await Content.create({
+            title: parsedData.data.title,
+            link: parsedData.data.link,
+            tags: parsedData.data.tags,
+            type: parsedData.data.type,
+            userId: userId
+        })
+
+        res
+        .status(200)
+        .json({
+            message: "content has been created"
+        })
+
+    } catch (error) {
+        res
+        .status(403)
+        .json({
+            message: "error while creating content"
+        })
+    }
 })
 
-projectRoutes.get("/content", (req, res) => {
+projectRoutes.get("/content", userAuthMiddelware, async (req, res) => {
+    // @ts-ignore
+    const userId = req.userId
 
+    const content = await Content.find({
+        userId: userId
+    })
+
+    res
+    .status(200)
+    .json({
+        content
+    })
 })
 
-projectRoutes.delete("/content", (req, res) => {
+projectRoutes.delete("/content", userAuthMiddelware,  async (req, res) => {
+    //@ts-ignore
+    const userId = req.userId
 
+    const parsedData = deleteZodvalidationSchema.safeParse(req.body);
+    
+    if (!parsedData.success) {
+        res
+        .status(403)
+        .json({ 
+            message: "Invalid content ID" 
+        });
+        return
+    }
+
+    const contentId = parsedData.data.contentId
+
+    await Content.deleteOne({
+        _id: contentId,
+        userId
+    })
+
+    res
+    .status(200)
+    .json({
+        message: "content deleted successfully"
+    })
+    
 })
 
 projectRoutes.post("/share", (req, res) => {
