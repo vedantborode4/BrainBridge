@@ -68,7 +68,7 @@ projectRoutes.post("/signup", async (req , res) => {
         }
 
         const existingUsername = await User.findOne({
-                email: parsedData.data.username
+                username: parsedData.data.username
         })
         if(existingUsername){
             res
@@ -123,7 +123,7 @@ projectRoutes.post("/signin", async (req, res) => {
             res
             .status(403)
             .json({
-                message: "User doen't exist"
+                message: "User doesn't exist"
             })
             return        
         }
