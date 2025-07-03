@@ -5,6 +5,7 @@ import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 import { userAuthMiddelware } from "../middlewares/user.auth.middleware"
 import { Content } from "../models/content.model"
+import { Tag } from "../models/tag.model"
 
 const projectRoutes = Router()
 
@@ -168,20 +169,40 @@ projectRoutes.post("/content", userAuthMiddelware, async (req, res) => {
     //@ts-ignore
     const userId = req.userId
 
+    if(!parsedData.success){
+        res
+        .status(411)
+        .json({
+            message: "Error in inputs"
+        })
+        return
+    }
+    
     try {
-        if(!parsedData.success){
-            res
-            .status(411)
-            .json({
-                message: "Error in inputs"
-            })
-            return
+        const {tags} = parsedData.data
+
+        const tagsId = []
+
+        for(const tagTitle of tags) {
+            const normalizedTitle = tagTitle.toLowerCase().trim()
+
+            let tag = await Tag.findOne({
+                title: normalizedTitle
+            }) 
+
+            if(!tag) {
+                tag = await Tag.create({
+                    title: normalizedTitle
+                })
+            }
+
+            tagsId.push(tag._id)
         }
 
         await Content.create({
             title: parsedData.data.title,
             link: parsedData.data.link,
-            tags: parsedData.data.tags,
+            tags: tagsId,
             type: parsedData.data.type,
             userId: userId
         })
