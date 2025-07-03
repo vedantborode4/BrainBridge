@@ -9,6 +9,15 @@ export const userAuthMiddelware = (req: Request, res: Response, next: NextFuncti
 
     const decoded = jwt.verify(header as string, JWTSECRET)
 
+    if (!header) {
+        res
+        .status(403)
+        .json({ 
+            message: "Missing Authorization header" 
+        })
+        return 
+    }
+    
     if(decoded) {
         if(typeof decoded === "string"){
             res
@@ -28,6 +37,4 @@ export const userAuthMiddelware = (req: Request, res: Response, next: NextFuncti
             message: "You are not logged in"
         })
     }
-
-    next()
 }
