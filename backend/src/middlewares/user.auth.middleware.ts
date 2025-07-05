@@ -27,8 +27,9 @@ export const userAuthMiddelware = (req: Request, res: Response, next: NextFuncti
             })
             return;
         }
-        // @ts-ignore
+
         req.userId = (decoded as JwtPayload).id;
+
         next()
     } else {
         res

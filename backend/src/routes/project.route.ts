@@ -166,7 +166,7 @@ projectRoutes.post("/signin", async (req, res) => {
 projectRoutes.post("/content", userAuthMiddelware, async (req, res) => {
 
     const parsedData = contentZodvalidationSchema.safeParse(req.body)
-    //@ts-ignore
+    
     const userId = req.userId
 
     if(!parsedData.success){
@@ -223,7 +223,7 @@ projectRoutes.post("/content", userAuthMiddelware, async (req, res) => {
 })
 
 projectRoutes.get("/content", userAuthMiddelware, async (req, res) => {
-    // @ts-ignore
+
     const userId = req.userId
 
     const content = await Content.find({
@@ -238,7 +238,7 @@ projectRoutes.get("/content", userAuthMiddelware, async (req, res) => {
 })
 
 projectRoutes.delete("/content", userAuthMiddelware,  async (req, res) => {
-    //@ts-ignore
+
     const userId = req.userId
 
     const parsedData = deleteZodvalidationSchema.safeParse(req.body);
