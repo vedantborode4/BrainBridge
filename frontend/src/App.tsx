@@ -1,7 +1,10 @@
+import { Button } from "./components/ui/Button"
 
 function App() {
   return (
-    <div>App</div>
+    <div>
+      <Button size="sm" title="Add" variant="primary" onClick={() => {}}  />
+    </div>
   )
 }
 
