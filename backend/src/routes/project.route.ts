@@ -6,6 +6,8 @@ import jwt from "jsonwebtoken"
 import { userAuthMiddelware } from "../middlewares/user.auth.middleware"
 import { Content } from "../models/content.model"
 import { Tag } from "../models/tag.model"
+import { Link } from "../models/link.model"
+import { random } from "../utils/random"
 
 const projectRoutes = Router()
 
@@ -267,12 +269,90 @@ projectRoutes.delete("/content", userAuthMiddelware,  async (req, res) => {
     
 })
 
-projectRoutes.post("/share", (req, res) => {
+projectRoutes.post("/share", userAuthMiddelware, async (req, res) => {
+    const share = req.body.share 
 
+    if(share){
+
+        const existingLink = await Link.findOne({
+            userId : req.userId
+        })
+
+        if(existingLink){
+            res
+            .status(200)
+            .json({
+                message: "sharable link already exists",
+                hash: existingLink.hash
+            })
+            return
+        }
+
+        const hash = random(10);
+
+        await Link.create({
+            userId: req.userId,
+            hash: hash
+        })
+        
+        res
+        .status(200)
+        .json({
+            message: "created sharable link",
+            hash: hash
+        })
+    } else {
+        await Link.deleteOne({
+            userId: req.userId
+        })
+
+        res
+        .status(200)
+        .json({
+            message: "deleted sharable link"
+        })
+    }
 })
 
-projectRoutes.get("/brain/:shareLink", (req, res) => {
+projectRoutes.get("/brain/:shareLink", async (req, res) => {
+    const hash = req.params.shareLink;
 
+    const link = await Link.findOne({
+        hash
+    })
+
+    if (!link) {
+        res
+        .status(403)
+        .json({
+            message: "Incorrect input"
+        })
+        return
+    }
+
+    const content = await Content.find({
+        userId: link.userId
+    })
+
+    const user = await User.findOne({
+        _id: link.userId
+    })
+
+    if (!user) {
+        res
+        .status(403)
+        .json({
+            message: "user not found, error should ideally not happens"
+        })
+        return
+    }
+
+    res
+    .status(200)
+    .json({
+        username: user.username,
+        content: content
+    })
 })
 
 
