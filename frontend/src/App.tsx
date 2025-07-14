@@ -1,10 +1,12 @@
-import { Button } from "./components/ui/Button"
+import { Signin } from "./pages/Signin"
+import { Signup } from "./pages/Signup"
 
 function App() {
   return (
-    <div>
-      <Button size="sm" title="Add" variant="primary" onClick={() => {}}  />
-    </div>
+    <>
+      {/* <Signup/> */}
+      <Signin/>
+    </>
   )
 }
 
