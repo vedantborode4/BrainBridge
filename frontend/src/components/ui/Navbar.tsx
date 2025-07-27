@@ -1,15 +1,22 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { PlusIcon } from "../../icons/PlusIcon"
 import { ShareIcon } from "../../icons/ShareIcon"
 import { Button } from "./Button"
 import { CreateContentModal } from "./CreateContentModal"
 import { ProfileCard } from "./ProfileCard"
 import { ShareBrainModal } from "./ShareBrainModal"
+import { useContent } from "../../hooks/useContent"
 
 export function Navbar () {
     const [createContentModalOpen, setCreateContentModalOpen] = useState(false)
     const [shareModalOpen, setShareModalOpen] = useState(false)
     const [profileModalOpen, setProfileModalOpen] = useState(false)
+
+    const {refresh} = useContent()
+
+    useEffect (() => {
+        refresh()
+    }, [setCreateContentModalOpen])
 return  <div>
     <CreateContentModal open={createContentModalOpen} onClose={() => {setCreateContentModalOpen(false)}}/>
     <ProfileCard open={profileModalOpen} onClose={() => {setProfileModalOpen(false)}} />
